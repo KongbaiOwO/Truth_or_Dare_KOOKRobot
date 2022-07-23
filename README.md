@@ -6,4 +6,4 @@ KOOK机器人开发者文档：https://developer.kookapp.cn/
 
 使用khl.py外部库：https://github.com/TWT233/khl.py
 
-P.S.大冒险与真心话词库中每个词直接用"+"链接
+P.S.大冒险与真心话词库和管理员中每个词之间用"+"链接
