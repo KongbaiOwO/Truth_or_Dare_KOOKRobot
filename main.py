@@ -42,7 +42,7 @@ def reset(gid):
     del mkdir
 
 
-bot = Bot(token='将这里改成你机器人的秘钥')
+bot = Bot(token='在这里填写你机器人的秘钥')
 
 @bot.command(name = '重置真心话大冒险' )
 async def restcommand(msg: Message):
@@ -209,7 +209,7 @@ async def print_btn_value(b: Bot, e: Event):
             writedata(e.body['guild_id'])
 
     if e.body['value'] == '选真的':
-        if e.body['user_id'] not in data["玩家"] or int(e.body['user_id']) == data['惩罚玩家'] or e.body['user_id'] in data["判断真的"]:
+        if not data["惩罚完成"] or e.body['user_id'] not in data["玩家"] or int(e.body['user_id']) == data['惩罚玩家'] or e.body['user_id'] in data["判断真的"]:
             await b.send(channel, f'''(met){e.body['user_id']}(met) 你现在无需判断''', temp_target_id=e.body['user_id'])
         elif e.body['user_id'] in data["判断假的"]:
             for i in range(len(data["判断假的"])):
@@ -247,7 +247,7 @@ async def print_btn_value(b: Bot, e: Event):
             await b.send(channel, cm)
 
     if e.body['value'] == '选假的':
-        if e.body['user_id'] not in data["玩家"] or int(e.body['user_id']) == data['惩罚玩家'] or e.body['user_id'] in data["判断假的"]:
+        if not data["惩罚完成"] or  e.body['user_id'] not in data["玩家"] or int(e.body['user_id']) == data['惩罚玩家'] or e.body['user_id'] in data["判断假的"]:
             await b.send(channel, f'''(met){e.body['user_id']}(met) 你现在无需判断''', temp_target_id=e.body['user_id'])
         elif e.body['user_id'] in data["判断真的"]:
             for i in range(len(data["判断真的"])):
