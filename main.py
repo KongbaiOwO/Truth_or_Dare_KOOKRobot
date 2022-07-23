@@ -42,7 +42,7 @@ def reset(gid):
     del mkdir
 
 
-bot = Bot(token='1/MTIwMTQ=/GoaEMe4ppT62xkcJHz5NYg==')
+bot = Bot(token='将这里改成你机器人的秘钥')
 
 @bot.command(name = '重置真心话大冒险' )
 async def restcommand(msg: Message):
