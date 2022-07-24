@@ -17,7 +17,7 @@ def loaddata(gid):
 
 def writedata(gid):
     from json import dump
-    with open(f'./data/{gid}.json', 'w') as f:
+    with open(f'./data/{gid}.json', 'w+') as f:
         dump(data,f,sort_keys=True, indent=2)
         del dump
     loaddata(gid)
@@ -42,7 +42,60 @@ def reset(gid):
     del mkdir
 
 
-bot = Bot(token='在这里写入你自己机器人的秘钥')
+bot = Bot(token='在这里写入机器人的秘钥')
+
+@bot.command(name = '签到' )
+async def signin(msg: Message):
+    print(f'''{msg.author.nickname} 触发了命令 \"{msg.extra["kmarkdown"]["raw_content"]}\"''')
+    from os.path import exists
+    from json import dump
+    if not exists(f'./data/player/{msg.author_id}.json'):
+        with open(f'./data/player/{msg.author_id}.json', 'w+') as f:
+            playerdata={
+                "最后签到时间": '0000-00-00 00:00:00',
+                "金币数" : 0
+            }
+            dump(playerdata, f, sort_keys=True, indent=2)
+    del exists,dump
+    with open(f'./data/player/{msg.author_id}.json', 'r') as f:
+        from json import loads
+        playerdata = loads(f.read())
+        del loads
+    import datetime
+    now = datetime.datetime.now()
+    now=now.strftime("%Y-%m-%d %H:%M:%S")
+    del datetime
+    if playerdata['最后签到时间'][0:10] == now[0:10] :
+        await msg.ctx.channel.send(f'''(met){msg.author_id}(met) 你在今天 {playerdata['最后签到时间'][11:]} 已经签到过了''')
+    else:
+        from random import randint
+        from json import dump
+        coinadd= randint(200,800)
+        playerdata['最后签到时间'] = now
+        playerdata['金币数'] += coinadd
+        with open(f'./data/player/{msg.author_id}.json', 'w+') as f:
+            dump(playerdata, f, sort_keys=True, indent=2)
+        del dump,randint
+        await msg.ctx.channel.send(f'''(met){msg.author_id}(met) 恭喜签到成功，你获得了{coinadd}个金币，现在总共有{playerdata['金币数']}个金币''')
+
+@bot.command(name = '查金币' )
+async def checkcoin(msg: Message):
+    print(f'''{msg.author.nickname} 触发了命令 \"{msg.extra["kmarkdown"]["raw_content"]}\"''')
+    from os.path import exists
+    from json import dump
+    if not exists(f'./data/player/{msg.author_id}.json'):
+        with open(f'./data/player/{msg.author_id}.json', 'w+') as f:
+            playerdata={
+                "最后签到时间": '0000-00-00 00:00:00',
+                "金币数" : 0
+            }
+            dump(playerdata, f, sort_keys=True, indent=2)
+    del exists,dump
+    with open(f'./data/player/{msg.author_id}.json', 'r') as f:
+        from json import loads
+        playerdata = loads(f.read())
+        del loads
+    await msg.ctx.channel.send(f'''(met){msg.author_id}(met) 你现在总共有{playerdata['金币数']}个金币''')
 
 @bot.command(name = '重置真心话大冒险' )
 async def restcommand(msg: Message):
@@ -88,7 +141,23 @@ async def print_btn_value(b: Bot, e: Event):
     channel = await b.fetch_public_channel(e.body['target_id'])
 
     if e.body['value']=='加入真心话大冒险':
-        if e.body['user_id'] in data['玩家']:
+        from os.path import exists
+        from json import dump
+        if not exists(f'./data/player/{e.body["user_id"]}.json'):
+            with open(f'./data/player/{e.body["user_id"]}.json', 'w+') as f:
+                playerdata = {
+                    "最后签到时间": '0000-00-00 00:00:00',
+                    "金币数": 0
+                }
+                dump(playerdata, f, sort_keys=True, indent=2)
+        del exists, dump
+        with open(f'./data/player/{e.body["user_id"]}.json', 'r') as f:
+            from json import loads
+            playerdata = loads(f.read())
+            del loads
+        if playerdata['金币数'] <0 :
+            await b.send(channel, f'''(met){e.body['user_id']}(met) 对不起，你的金币数不足，还需{abs(playerdata['金币数'])}个金币才能继续参加游戏''', temp_target_id=e.body['user_id'])
+        elif e.body['user_id'] in data['玩家']:
             await b.send(channel, f'''(met){e.body['user_id']}(met) 你已经加入了真心话大冒险''' , temp_target_id=e.body['user_id'])
         elif data["是否开始"]:
             await b.send(channel, f'''(met){e.body['user_id']}(met) 真心话大冒险已开始，请结束后再加入''' , temp_target_id=e.body['user_id'])
@@ -226,14 +295,44 @@ async def print_btn_value(b: Bot, e: Event):
             await b.send(channel, f'''(met){e.body['user_id']}(met) 你选择了真的（真：假={len(data["判断真的"])}：{len(data["判断假的"])}）''')
         if len(data["判断真的"]) + len(data["判断假的"]) == len(data["玩家"]) - 1:
             if len(data["判断真的"]) >=len(data["判断假的"]):
-                await b.send(channel, f'''恭喜 (met){data["惩罚玩家"]}(met) 成功完成惩罚''')
+                with open(f'./data/player/{data["惩罚玩家"]}.json', 'r') as f:
+                    from json import loads
+                    playerdata = loads(f.read())
+                    del loads
+                from random import randint
+                coinadd = randint(50,100)
+                playerdata['金币数']+=coinadd
+                with open(f'./data/player/{data["惩罚玩家"]}.json', 'w+') as f:
+                    from json import dump
+                    dump(playerdata,f,sort_keys=True, indent=2)
+                    del dump
+                await b.send(channel, f'''恭喜 (met){data["惩罚玩家"]}(met) 成功完成惩罚，获得{coinadd}个金币''')
             else:
-                await b.send(channel, f'''(met){data["惩罚玩家"]}(met) 未能完成惩罚，你将遭到谴责''')
+                with open(f'./data/player/{data["惩罚玩家"]}.json', 'r') as f:
+                    from json import loads
+                    playerdata = loads(f.read())
+                    del loads
+                from random import randint
+                coinadd = randint(50,100)
+                playerdata['金币数']-=coinadd
+                with open(f'./data/player/{data["惩罚玩家"]}.json', 'w+') as f:
+                    from json import dump
+                    dump(playerdata,f,sort_keys=True, indent=2)
+                    del dump
+                await b.send(channel, f'''(met){data["惩罚玩家"]}(met) 未能完成惩罚，你将遭到谴责，并没收{coinadd}个金币''')
             temp = data['玩家']
-            for i in temp:
-                temp[i] = -1
+            temp_1={}
+            for i in temp.keys():
+                with open(f'./data/player/{i}.json', 'r') as f:
+                    from json import loads
+                    playerdata = loads(f.read())
+                    del loads
+                if playerdata["金币数"]<0:
+                    await b.send(channel, f'''(met){i}(met) 的金币已经没有金币已被踢出游戏，请获取{abs(playerdata["金币数"])}个金币再进行游戏''')
+                else:
+                    temp_1[i] = -1
             reset(e.body['guild_id'])
-            data['玩家'] = temp
+            data['玩家'] = temp_1
             writedata(e.body['guild_id'])
             await b.send(channel, "游戏结束")
             c = Card(Module.Header('真心话大冒险'),
@@ -263,15 +362,45 @@ async def print_btn_value(b: Bot, e: Event):
             writedata(e.body['guild_id'])
             await b.send(channel, f'''(met){e.body['user_id']}(met) 你选择了假的（真：假={len(data["判断真的"])}：{len(data["判断假的"])}）''')
         if len(data["判断真的"]) + len(data["判断假的"]) == len(data["玩家"]) - 1:
-            if len(data["判断真的"]) >=len(data["判断假的"]):
-                await b.send(channel, f'''恭喜 (met){data["惩罚玩家"]}(met) 成功完成惩罚''')
+            if len(data["判断真的"]) >= len(data["判断假的"]):
+                with open(f'./data/player/{data["惩罚玩家"]}.json', 'r') as f:
+                    from json import loads
+                    playerdata = loads(f.read())
+                    del loads
+                from random import randint
+                coinadd = randint(50, 100)
+                playerdata['金币数'] += coinadd
+                with open(f'./data/player/{data["惩罚玩家"]}.json', 'w+') as f:
+                    from json import dump
+                    dump(playerdata, f, sort_keys=True, indent=2)
+                    del dump
+                await b.send(channel, f'''恭喜 (met){data["惩罚玩家"]}(met) 成功完成惩罚，获得{coinadd}个金币''')
             else:
-                await b.send(channel, f'''(met){data["惩罚玩家"]}(met) 未能完成惩罚，你将遭到谴责''')
+                with open(f'./data/player/{data["惩罚玩家"]}.json', 'r') as f:
+                    from json import loads
+                    playerdata = loads(f.read())
+                    del loads
+                from random import randint
+                coinadd = randint(50, 100)
+                playerdata['金币数'] -= coinadd
+                with open(f'./data/player/{data["惩罚玩家"]}.json', 'w+') as f:
+                    from json import dump
+                    dump(playerdata, f, sort_keys=True, indent=2)
+                    del dump
+                await b.send(channel, f'''(met){data["惩罚玩家"]}(met) 未能完成惩罚，你将遭到谴责，并没收{coinadd}个金币''')
             temp=data['玩家']
-            for i in temp:
-                temp[i]=-1
+            temp_1 = {}
+            for i in temp.keys():
+                with open(f'./data/player/{i}.json', 'r') as f:
+                    from json import loads
+                    playerdata = loads(f.read())
+                    del loads
+                if playerdata["金币数"] < 0:
+                    await b.send(channel, f'''(met){i}(met) 的金币已经没有金币已被踢出游戏，请获取{abs(playerdata["金币数"])}个金币再进行游戏''')
+                else:
+                    temp_1[i] = -1
             reset(e.body['guild_id'])
-            data['玩家'] = temp
+            data['玩家'] = temp_1
             writedata(e.body['guild_id'])
             await b.send(channel,"游戏结束")
             c = Card(Module.Header('真心话大冒险'),
@@ -389,16 +518,45 @@ async def checkpoints(msg: Message):
             if i not in data['判断真的']+data['判断假的'] and int(i) != data["惩罚玩家"]:
                 no_pd_count += 1
         if (no_pd_count) <= ((len(data["玩家"]) - 1 )// 2):
-            if len(data["判断真的"]) >=len(data["判断假的"]):
-                await msg.ctx.channel.send(f'''恭喜 (met){data["惩罚玩家"]}(met) 成功完成惩罚''')
+            if len(data["判断真的"]) >= len(data["判断假的"]):
+                with open(f'./data/player/{data["惩罚玩家"]}.json', 'r') as f:
+                    from json import loads
+                    playerdata = loads(f.read())
+                    del loads
+                from random import randint
+                coinadd = randint(50, 100)
+                playerdata['金币数'] += coinadd
+                with open(f'./data/player/{data["惩罚玩家"]}.json', 'w+') as f:
+                    from json import dump
+                    dump(playerdata, f, sort_keys=True, indent=2)
+                    del dump
+                await msg.ctx.channel.send(f'''恭喜 (met){data["惩罚玩家"]}(met) 成功完成惩罚，获得{coinadd}个金币''')
             else:
-                await msg.ctx.channel.send(f'''(met){data["惩罚玩家"]}(met) 未能完成惩罚，你将遭到谴责''')
-            temp=data['玩家']
-            writedata(msg.extra['guild_id'])
-            for i in temp:
-                temp[i]=-1
+                with open(f'./data/player/{data["惩罚玩家"]}.json', 'r') as f:
+                    from json import loads
+                    playerdata = loads(f.read())
+                    del loads
+                from random import randint
+                coinadd = randint(50, 100)
+                playerdata['金币数'] -= coinadd
+                with open(f'./data/player/{data["惩罚玩家"]}.json', 'w+') as f:
+                    from json import dump
+                    dump(playerdata, f, sort_keys=True, indent=2)
+                    del dump
+                await msg.ctx.channel.send(f'''(met){data["惩罚玩家"]}(met) 未能完成惩罚，你将遭到谴责，并没收{coinadd}个金币''')
+            temp = data['玩家']
+            temp_1 = {}
+            for i in temp.keys():
+                with open(f'./data/player/{i}.json', 'r') as f:
+                    from json import loads
+                    playerdata = loads(f.read())
+                    del loads
+                if playerdata["金币数"] < 0:
+                    await msg.ctx.channel.send(f'''(met){i}(met) 的金币已经没有金币已被踢出游戏，请获取{abs(playerdata["金币数"])}个金币再进行游戏''')
+                else:
+                    temp_1[i] = -1
             reset(msg.extra['guild_id'])
-            data['玩家'] = temp
+            data['玩家'] = temp_1
             writedata(msg.extra['guild_id'])
             await msg.ctx.channel.send("游戏结束")
             c = Card(Module.Header('真心话大冒险'),
@@ -407,23 +565,6 @@ async def checkpoints(msg: Message):
                          Element.Button('加入', '加入真心话大冒险', Types.Click.RETURN_VAL, Types.Theme.INFO),
                          Element.Button('退出', '退出真心话大冒险', Types.Click.RETURN_VAL, Types.Theme.DANGER),
                          Element.Button('开始真心话大冒险', '开始真心话大冒险', Types.Click.RETURN_VAL, Types.Theme.PRIMARY))
-                     )
-            cm = CardMessage(c)
-            await msg.ctx.channel.send(cm)
-        else:
-            await msg.ctx.channel.send(f"(met){msg.author_id}(met) 结果投票失败")
-            temp=[]
-            for i in data['玩家']:
-                if i not in data['判断真的']+data['判断假的'] and int(i)!=data["惩罚玩家"]:
-                    temp.append(i)
-            tempmsg = f'还有{len(temp)}没有判断，请下列玩家尽快判断'
-            for i in temp:
-                tempmsg+=f" (met){i}(met) "
-            await msg.ctx.channel.send(tempmsg)
-            c = Card(Module.Header('请尽快判断'),
-                     Module.ActionGroup(
-                         Element.Button('真的', '选真的', Types.Click.RETURN_VAL, Types.Theme.INFO),
-                         Element.Button('假的', '选假的', Types.Click.RETURN_VAL, Types.Theme.DANGER))
                      )
             cm = CardMessage(c)
             await msg.ctx.channel.send(cm)
@@ -582,7 +723,6 @@ async def deladmin(msg: Message , number:str):
             with open('./管理员.txt', 'w', encoding='utf-8') as f:
                 f.write(writeadmin)
             await msg.ctx.channel.send(f'''(met){msg.author_id}(met) 已删除 (met){number}(met) 为管理员''')
-
 
 if __name__=="__main__":
     bot.run()
