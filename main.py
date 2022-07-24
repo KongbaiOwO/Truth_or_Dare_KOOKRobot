@@ -42,7 +42,7 @@ def reset(gid):
     del mkdir
 
 
-bot = Bot(token='在这里填写你机器人的秘钥')
+bot = Bot(token='在这里写入你自己机器人的秘钥')
 
 @bot.command(name = '重置真心话大冒险' )
 async def restcommand(msg: Message):
@@ -364,7 +364,7 @@ async def stoppoints(msg: Message):
             for i in data['玩家']:
                 if data['玩家'][i] == -1:
                     temp.append(i)
-            tempmsg = f'还有{len(temp)}没有拼点，请下列玩家尽快拼点'
+            tempmsg = f'还有{len(temp)}位玩家没有拼点，请下列玩家尽快拼点'
             for i in temp:
                 tempmsg += f" (met){i}(met) "
             await msg.ctx.channel.send(tempmsg)
@@ -400,7 +400,7 @@ async def checkpoints(msg: Message):
             reset(msg.extra['guild_id'])
             data['玩家'] = temp
             writedata(msg.extra['guild_id'])
-            await msg.ctx.channel.send("戏结束")
+            await msg.ctx.channel.send("游戏结束")
             c = Card(Module.Header('真心话大冒险'),
                      Module.Context('加入或退出真心话大冒险'),
                      Module.ActionGroup(
