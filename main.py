@@ -42,7 +42,7 @@ def reset(gid):
     del mkdir
 
 
-bot = Bot(token='在这里写入机器人的秘钥')
+bot = Bot(token='在这里填入机器人秘钥')
 
 @bot.command(name = '签到' )
 async def signin(msg: Message):
@@ -328,7 +328,7 @@ async def print_btn_value(b: Bot, e: Event):
                     playerdata = loads(f.read())
                     del loads
                 if playerdata["金币数"]<0:
-                    await b.send(channel, f'''(met){i}(met) 的金币已经没有金币已被踢出游戏，请获取{abs(playerdata["金币数"])}个金币再进行游戏''')
+                    await b.send(channel, f'''(met){i}(met) 的金币已经清空，并已被踢出游戏，请获取{abs(playerdata["金币数"])}个金币再进行游戏''')
                 else:
                     temp_1[i] = -1
             reset(e.body['guild_id'])
@@ -396,7 +396,7 @@ async def print_btn_value(b: Bot, e: Event):
                     playerdata = loads(f.read())
                     del loads
                 if playerdata["金币数"] < 0:
-                    await b.send(channel, f'''(met){i}(met) 的金币已经没有金币已被踢出游戏，请获取{abs(playerdata["金币数"])}个金币再进行游戏''')
+                    await b.send(channel, f'''(met){i}(met) 的金币已经清空，并已被踢出游戏，请获取{abs(playerdata["金币数"])}个金币再进行游戏''')
                 else:
                     temp_1[i] = -1
             reset(e.body['guild_id'])
@@ -552,7 +552,7 @@ async def checkpoints(msg: Message):
                     playerdata = loads(f.read())
                     del loads
                 if playerdata["金币数"] < 0:
-                    await msg.ctx.channel.send(f'''(met){i}(met) 的金币已经没有金币已被踢出游戏，请获取{abs(playerdata["金币数"])}个金币再进行游戏''')
+                    await msg.ctx.channel.send(f'''(met){i}(met) 的金币已经清空，并已被踢出游戏，请获取{abs(playerdata["金币数"])}个金币再进行游戏''')
                 else:
                     temp_1[i] = -1
             reset(msg.extra['guild_id'])
